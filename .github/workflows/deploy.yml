@@ -15,7 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     env:
-      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_CLOUD_TOKEN }}
+    defaults:
+      run:
+        working-directory: terraform
 
     steps:
     - name: Checkout code
@@ -40,9 +43,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     env:
-      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_CLOUD_TOKEN }}
     outputs:
       instance_ip: ${{ steps.ip_output.outputs.instance_ip }}
+    defaults:
+      run:
+        working-directory: terraform
     
 
     steps:

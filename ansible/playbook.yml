@@ -1,0 +1,9 @@
+---
+- name: Show IP
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Print IP
+      debug:
+        msg: "IP: {{ inventory_hostname }}"
