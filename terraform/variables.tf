@@ -70,9 +70,3 @@ variable "admin_username" {
   type        = string
   default     = "azureuser"
 }
-
-variable "admin_ssh_public_key_path" {
-  description = "Path to the SSH public key"
-  type        = string
-  default     = "${path.module}/my_azure_key.pub"
-}

@@ -136,7 +136,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = file(var.admin_ssh_public_key_path)
+    public_key = file("${path.module}/my_azure_key.pub")
   }
 
   disable_password_authentication = true
