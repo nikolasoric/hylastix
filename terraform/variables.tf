@@ -74,5 +74,5 @@ variable "admin_username" {
 variable "admin_ssh_public_key_path" {
   description = "Path to the SSH public key"
   type        = string
-  default     = file("${path.module}/my_azure_key.pub")
+  default     = "${path.module}/my_azure_key.pub"
 }
