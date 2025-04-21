@@ -16,6 +16,9 @@ jobs:
     if: github.event_name == 'pull_request'
     env:
       TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+    defaults:
+      run:
+        working-directory: terraform
 
     steps:
     - name: Checkout code
@@ -43,6 +46,9 @@ jobs:
       TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
     outputs:
       instance_ip: ${{ steps.ip_output.outputs.instance_ip }}
+    defaults:
+      run:
+        working-directory: terraform
     
 
     steps:
