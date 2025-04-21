@@ -35,12 +35,6 @@ jobs:
     - name: Terraform Plan
       run: terraform plan
 
-    - name: Upload plan output
-      uses: actions/upload-artifact@v3
-      with:
-        name: terraform-plan-output
-        path: terraform.plan
-
   terraform_apply:
     name: 'Terraform Apply'
     runs-on: ubuntu-latest
