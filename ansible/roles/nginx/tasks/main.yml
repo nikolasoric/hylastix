@@ -11,6 +11,17 @@
     state: started
     enabled: true
 
+- name: Move Nginx Conf to Server
+  template:
+    src: files/app.j2
+    dest: /etc/nginx/sites-available/app
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: '0644'
+
+- name: Create symlink
+  shell: sudo ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled/
+
 - name: Serve Web Page
   ansible.builtin.template:
     src: index.html
