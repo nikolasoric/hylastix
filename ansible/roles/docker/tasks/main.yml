@@ -56,7 +56,3 @@
 - name: Show Docker Compose version
   debug:
     msg: "Installed Docker Compose, version: {{ compose_version.stdout }}"
-
-- name: Print admin username
-  debug:
-    msg: "The admin username is {{ admin_username }}"

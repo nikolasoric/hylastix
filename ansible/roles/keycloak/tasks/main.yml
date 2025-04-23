@@ -1,0 +1,141 @@
+---
+- name: Create directory for self-signed CA
+  file:
+    path: /opt/keycloak/certs
+    state: directory
+    mode: '0755'
+
+- name: Generate a private key for Keycloak
+  openssl_privatekey:
+    path: /opt/keycloak/certs/keycloak.key.pem
+    size: 2048
+    state: present
+    type: RSA
+    mode: '0644'
+
+- name: Generate CSR for Keycloak
+  openssl_csr:
+    path: /opt/keycloak/certs/keycloak.csr.pem
+    privatekey_path: /opt/keycloak/certs/keycloak.key.pem
+    common_name: keycloak.local
+
+- name: Generate a self-signed certificate for Keycloak
+  openssl_certificate:
+    path: /opt/keycloak/certs/keycloak.crt.pem
+    privatekey_path: /opt/keycloak/certs/keycloak.key.pem
+    csr_path: /opt/keycloak/certs/keycloak.csr.pem
+    provider: selfsigned
+    selfsigned_not_after: "+10d"
+    mode: '0644'
+
+- name: Copy the docker-compose.yml file to the remote server
+  template:
+    src: files/docker-compose.yml.j2
+    dest: /home/{{ admin_username }}/docker-compose.yml
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: '0644'
+
+- name: Run Docker Compose to start Keycloak and Postgres
+  command: docker-compose -f /home/{{ admin_username }}/docker-compose.yml up -d
+
+- name: Wait for Keycloak to be ready
+  uri:
+    url: https://{{ instance_ip }}:8443
+    method: GET
+    status_code: 200
+    validate_certs: no
+  register: result
+  retries: 30
+  delay: 10
+  until: result.status == 200
+
+- name: Create Keycloak realm
+  community.general.keycloak_realm:
+    auth_client_id: admin-cli
+    auth_keycloak_url: https://{{ instance_ip }}:8443
+    validate_certs: false
+    auth_realm: master
+    auth_username: "{{ keycloak_admin }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    realm: "{{ keycloak_realm }}"
+    enabled: true
+    state: present
+  register: keycloak_realm_result
+  retries: 5
+  delay: 5
+  until: keycloak_realm_result is succeeded
+
+- name: Create a single Keycloak client with mappers
+  local_action:
+    module: keycloak_client
+    auth_client_id: admin-cli
+    auth_keycloak_url: https://{{ instance_ip }}:8443
+    validate_certs: false
+    auth_realm: master
+    auth_username: "{{ keycloak_admin }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    state: present
+    realm: "{{ keycloak_realm }}"
+    client_id: "{{ keycloak_client_id }}"
+    id: 12345678-90ab-cdef-1234-567890abcdef
+    name: "{{ keycloak_client_name }}"
+    description: "Keycloak Client"
+    enabled: true
+    client_authenticator_type: client-secret
+    public_client: false
+    secret: "{{ keycloak_secret }}"
+    authorization_services_enabled: true
+    service_accounts_enabled: true
+    redirect_uris:
+      - "http://{{ instance_ip }}/oauth2/callback"
+    web_origins:
+      - "http://{{ instance_ip }}/oauth2/callback"
+    frontchannel_logout: false
+    protocol: "{{ keycloak_protocol }}"
+
+    protocol_mappers:
+      - config:
+            accesss.token.claim: true
+            claim.name: "groups"
+            id.token.claim: true
+            userinfo.token.claim: true
+            full.path: false
+        id: 12345678-90ab-cdef-1234-567890abcde1
+        consentRequired: false
+        protocol: "{{ keycloak_protocol }}"
+        protocolMapper: "oidc-group-membership-mapper"
+        name: "client-group-mapper"
+      - config:
+            included.client.audience: "{{ keycloak_client_id }}"
+            id.token.claim: false
+            access.token.claim: true
+        id: 12345678-90ab-cdef-1234-567890abcde2
+        consentRequired: false
+        protocol: "{{ keycloak_protocol }}"
+        protocolMapper: "oidc-audience-mapper"
+        name: "aud-mapper-client"
+
+
+- name: Create a user
+  community.general.keycloak_user:
+    auth_keycloak_url: https://{{ instance_ip }}:8443
+    validate_certs: false
+    auth_realm: master
+    auth_username: "{{ keycloak_admin }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    realm: "{{ keycloak_realm }}"
+    username: "{{ keycloak_user }}"
+    firstName: "{{ keycloak_user_firstName }}"
+    lastName: "{{ keycloak_user_lastName }}"
+    email: "{{ keycloak_user_email }}"
+    email_verified: true
+    enabled: true
+    credentials:
+      - type: password
+        value: "{{ keycloak_password }}"
+        temporary: false
+    state: present
+
+- name: Restart oauth container
+  command: docker restart oauth

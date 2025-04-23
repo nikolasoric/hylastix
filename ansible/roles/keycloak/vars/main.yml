@@ -1,0 +1,29 @@
+#Postgres
+postgres_user: postgres
+#postgres_password: In Vault
+postgres_db: keycloakdb
+
+
+#Keycloak Config
+keycloak_admin: admin
+#keycloak_admin_password: admin (Defined in Vault, if you want to login to admin panel)
+keycloak_protocol: openid-connect
+
+
+#Keycloak Realm and Client
+keycloak_realm: hylastix-realm
+keycloak_client_id: hylastix-client
+keycloak_client_name: hylastix-client
+#keycloak_secret: In Vault
+
+
+#Keycloak User
+keycloak_user: hylastix-user
+keycloak_user_firstName: Hylastix
+keycloak_user_lastName: User
+keycloak_user_email: user@hylastix.com
+keycloak_password: hylastix #not in vault
+
+
+#Oauth2
+#oauth2_cookie_secret: In Vault
