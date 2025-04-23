@@ -1,9 +1,7 @@
 ---
-- name: Show IP
+- name: Deploy the required services
   hosts: all
-  gather_facts: no
+  become: true
 
-  tasks:
-    - name: Print IP
-      debug:
-        msg: "IP: {{ inventory_hostname }}"
+  roles:
+    - nginx

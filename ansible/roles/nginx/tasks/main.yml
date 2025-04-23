@@ -1,0 +1,19 @@
+---
+- name: Install Nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Start and Enable Nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Serve Web Page
+  ansible.builtin.template:
+    src: index.html
+    dest: /var/www/html/index.html
+    mode: '0644'
+  notify: Reload Nginx
