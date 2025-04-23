@@ -1,0 +1,62 @@
+---
+- name: Apt Update
+  apt:
+    update_cache: yes
+
+- name: Install Docker prerequisites
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+
+- name: Add Docker's official GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Install Docker-ce
+  apt:
+    name: docker-ce
+    state: present
+    
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+    
+- name: Install docker-compose
+  remote_user: ubuntu
+  get_url: 
+    url : https://github.com/docker/compose/releases/download/v2.35.1/docker-compose-linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: 'u+x,g+x'
+    
+- name: Verify Docker 
+  command: docker --version
+  register: docker_version
+
+- name: Show Docker version
+  debug:
+    msg: "Installed Docker, version: {{ docker_version.stdout }}"
+
+- name: Verify Docker Compose
+  command: docker-compose --version
+  register: compose_version
+
+- name: Show Docker Compose version
+  debug:
+    msg: "Installed Docker Compose, version: {{ compose_version.stdout }}"
+
+- name: vault read
+  debug:
+    msg: "Admin?: {{ keycloak_admin_password }}"

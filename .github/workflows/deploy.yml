@@ -50,7 +50,6 @@ jobs:
       run:
         working-directory: terraform
     
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -85,6 +84,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Create Vault Password Script
+        run: |
+          echo '#!/bin/bash' > ./vault-password-script.sh
+          echo "echo ${{ secrets.ANSIBLE_VAULT_PW }}" >> ./vault-password-script.sh
+          chmod +x ./vault-password-script.sh
+
       - name: Run Ansible Playbook
         uses: dawidd6/action-ansible-playbook@v3
         with:
@@ -95,4 +100,8 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY_PEM }}
           options: |
             --extra-vars "ansible_ssh_user=azureuser instance_ip=${{ needs.terraform_apply.outputs.instance_ip }}"
+            --vault-password-file ./vault-password-script.sh
+      
+      - name: Clean up Vault Password Script
+        run: rm -f ./vault-password-script.sh
 
