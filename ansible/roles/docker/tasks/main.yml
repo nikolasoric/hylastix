@@ -41,7 +41,7 @@
     dest: /usr/local/bin/docker-compose
     mode: 'u+x,g+x'
     
-- name: Verify Docker 
+- name: Verify Docker
   command: docker --version
   register: docker_version
 
@@ -57,6 +57,6 @@
   debug:
     msg: "Installed Docker Compose, version: {{ compose_version.stdout }}"
 
-- name: vault read
+- name: Print admin username
   debug:
-    msg: "Admin?: {{ keycloak_admin_password }}"
+    msg: "The admin username is {{ admin_username }}"

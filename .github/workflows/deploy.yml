@@ -46,6 +46,7 @@ jobs:
       TF_TOKEN_app_terraform_io: ${{ secrets.TF_CLOUD_TOKEN }}
     outputs:
       instance_ip: ${{ steps.ip_output.outputs.instance_ip }}
+      admin_username: ${{ steps.username_output.outputs.admin_username }}
     defaults:
       run:
         working-directory: terraform
@@ -74,6 +75,11 @@ jobs:
       if: always()
       id: ip_output
       run: echo "instance_ip=$(terraform output -raw instance_ip)" >> $GITHUB_OUTPUT
+
+    - name: Get Admin Username from Terraform output
+      if: always()
+      id: username_output
+      run: echo "admin_username=$(terraform output -raw admin_username)" >> $GITHUB_OUTPUT
       
   ansible:
     runs-on: ubuntu-latest
@@ -99,7 +105,7 @@ jobs:
             ${{ needs.terraform_apply.outputs.instance_ip }}  # Accessing instance IP from terraform_apply
           key: ${{ secrets.PRIVATE_KEY_PEM }}
           options: |
-            --extra-vars "ansible_ssh_user=azureuser instance_ip=${{ needs.terraform_apply.outputs.instance_ip }}"
+            --extra-vars "ansible_ssh_user=${{ needs.terraform_apply.outputs.admin_username }} instance_ip=${{ needs.terraform_apply.outputs.instance_ip }} admin_username=${{ needs.terraform_apply.outputs.admin_username }}"
             --vault-password-file ./vault-password-script.sh
       
       - name: Clean up Vault Password Script
